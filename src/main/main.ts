@@ -4,8 +4,8 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import * as usb from 'usb';
 
-import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 class AppUpdater {
@@ -20,6 +20,95 @@ let mainWindow: BrowserWindow | null = null;
 
 ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
+});
+
+ipcMain.on('usb_devices', async (event) => {
+  const devices = usb.getDeviceList();
+
+  // Function to get manufacturer and product name
+  const getDeviceDetails = (device: usb.Device) => {
+    return new Promise((resolve, reject) => {
+      try {
+        device.open();
+        device.getStringDescriptor(
+          device.deviceDescriptor.iManufacturer,
+          (error, manufacturer) => {
+            if (error) {
+              device.close();
+              return reject(error);
+            }
+            device.getStringDescriptor(
+              device.deviceDescriptor.iProduct,
+              (_error, product) => {
+                device.close();
+                if (_error) {
+                  return reject(_error);
+                }
+                resolve({ manufacturer, product });
+              },
+            );
+          },
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  try {
+    const filteredDevices = await Promise.all(
+      devices.map(async (device) => {
+        try {
+          const { manufacturer, product } = (await getDeviceDetails(
+            device,
+          )) as {
+            manufacturer: string;
+            product: string;
+          };
+
+          return {
+            busNumber: device.busNumber,
+            deviceAddress: device.deviceAddress,
+            name: product,
+            manufacturer,
+            deviceDescriptor: device.deviceDescriptor,
+            portNumbers: device.portNumbers,
+          };
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            (error.message.includes('LIBUSB_ERROR_NOT_SUPPORTED') ||
+              error.message.includes('LIBUSB_ERROR_IO'))
+          ) {
+            console.warn(
+              `Skipping device ${device.deviceAddress} due to unsupported operation or I/O error.`,
+            );
+            return null;
+          }
+          console.error(
+            `Error getting details for device ${device.deviceAddress}:`,
+            error,
+          );
+          return null;
+        }
+      }),
+    );
+
+    // Filter out null values and only external USB storage devices (e.g., USB sticks, drives)
+    const externalDevices = filteredDevices
+      .filter((device) => device !== null)
+      .filter((device) => {
+        const { bDeviceClass, bDeviceSubClass } = device.deviceDescriptor;
+        // Assuming class 8 (Mass Storage) and subclass 6 (SCSI transparent command set) for USB storage devices
+        return bDeviceClass === 8 && bDeviceSubClass === 6;
+      });
+
+    console.log(externalDevices);
+    event.sender.send('usb_devices', { devices: externalDevices });
+  } catch (error) {
+    console.error('Error processing USB devices:', error);
+    event.sender.send('usb_devices', { devices: [] });
+  }
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -92,9 +181,6 @@ const createWindow = async () => {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
 
   mainWindow.webContents.setWindowOpenHandler((edata) => {
     shell.openExternal(edata.url);

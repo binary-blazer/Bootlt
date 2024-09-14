@@ -95,7 +95,8 @@
     "react-router-dom": "^6.16.0",
     "sharp": "^0.33.5",
     "source-map-support": "^0.5.21",
-    "to-ico": "^1.1.5"
+    "to-ico": "^1.1.5",
+    "usb": "^2.13.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^3.3.0",
