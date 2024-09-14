@@ -1,13 +1,12 @@
 {
-  "name": "shadowbrowse-core",
+  "name": "bootlt-core",
   "version": "1.0.0-b.1",
-  "description": "ShadowBrowse is a web browser that is designed to be fast, secure, and private. It is built for the modern ShadowOS operating system",
   "license": "Apache-2.0",
   "main": "./dist/main/main.js",
   "scripts": {
-    "rebuild": "node -r ts-node/register ../../.shadow/scripts/electron-rebuild.js",
+    "rebuild": "node -r ts-node/register ../../.bootlt/scripts/electron-rebuild.js",
     "postinstall": "npm run rebuild && npm run link-modules",
-    "link-modules": "node -r ts-node/register ../../.shadow/scripts/link-modules.ts"
+    "link-modules": "node -r ts-node/register ../../.bootlt/scripts/link-modules.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.1.2"

@@ -26,7 +26,7 @@ module.exports = {
         moduleDirectory: ['node_modules', 'src/'],
       },
       webpack: {
-        config: require.resolve('./.shadow/configs/webpack.config.eslint.ts'),
+        config: require.resolve('./.bootlt/configs/webpack.config.eslint.ts'),
       },
       typescript: {},
     },

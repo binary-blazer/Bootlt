@@ -8,8 +8,6 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
-import { getSettings, setSettingsValue } from './database';
-
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
@@ -20,16 +18,8 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-ipcMain.on('settings:get', () => {
-  const settings = getSettings();
-  // console.log(settings);
-  return settings;
-});
-
-ipcMain.on('settings:set', (event, key, value) => {
-  setSettingsValue(key, value);
-  // console.log(key, value);
-  return true;
+ipcMain.on('app_version', (event) => {
+  event.sender.send('app_version', { version: app.getVersion() });
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -76,10 +66,11 @@ const createWindow = async () => {
     height: 728,
     icon: getAssetPath('icon.png'),
     autoHideMenuBar: true,
+    resizable: false,
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.shadow/dll/preload.js'),
+        : path.join(__dirname, '../../.bootlt/dll/preload.js'),
     },
   });
 

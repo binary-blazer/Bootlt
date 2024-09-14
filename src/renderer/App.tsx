@@ -1,9 +1,6 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import SetupStage1 from './setup/stage1/page';
-import SetupStage2 from './setup/stage2/page';
-import { IStoreSettingsObject } from '../main/interfaces';
 
 const swipeVariants = {
   initial: { x: '100vw' },
@@ -12,17 +9,14 @@ const swipeVariants = {
 };
 
 function Function({
-  settings,
-  setupPart,
-  setSetupPart,
+  swipePart,
+  setSwipePart,
 }: {
-  settings: IStoreSettingsObject;
-  setupPart: any;
-  setSetupPart: any;
+  swipePart: number;
+  setSwipePart: any;
 }) {
-  const handleSetupPart = (part: Number) => {
-    setSetupPart(part);
-    window.electron.ipcRenderer.sendMessage('settings:set', 'setupPart', part);
+  const handleSwipePart = (part: number) => {
+    setSwipePart(part);
   };
 
   return (
@@ -34,17 +28,28 @@ function Function({
       transition={{ type: 'linear', stiffness: 225, damping: 30 }}
     >
       {/* eslint-disable-next-line no-nested-ternary */}
-      {!settings?.setupDone ? (
-        // eslint-disable-next-line no-nested-ternary
-        settings?.setupPart === 0 ? (
-          <SetupStage1 setupPart={setupPart} setSetupPart={handleSetupPart} />
-        ) : settings?.setupPart === 1 ? (
-          <SetupStage2 setupPart={setupPart} setSetupPart={handleSetupPart} />
-        ) : (
-          <main className="relative flex flex-col items-center justify-center h-screen">
-            <i className="text-5xl fad fa-spinner-third animate-spin" />
-          </main>
-        )
+      {swipePart === 0 ? (
+        <main className="relative flex flex-col items-center justify-center h-screen">
+          <h1 className="text-5xl font-bold">Welcome to the app!</h1>
+          <button
+            type="button"
+            onClick={() => handleSwipePart(1)}
+            className="px-4 py-2 mt-4 text-white bg-blue-500 rounded-md"
+          >
+            Next
+          </button>
+        </main>
+      ) : swipePart === 1 ? (
+        <main className="relative flex flex-col items-center justify-center h-screen">
+          <h1 className="text-5xl font-bold">Step 2</h1>
+          <button
+            type="button"
+            onClick={() => handleSwipePart(2)}
+            className="px-4 py-2 mt-4 text-white bg-blue-500 rounded-md"
+          >
+            Next
+          </button>
+        </main>
       ) : (
         <main className="relative flex flex-col items-center justify-center h-screen">
           <i className="text-5xl fad fa-spinner-third animate-spin" />
@@ -55,14 +60,7 @@ function Function({
 }
 
 export default function App() {
-  const [settings, setSettings] = useState<IStoreSettingsObject | null>(null);
-  const [setupPart, setSetupPart] = useState(0);
-
-  window.electron.ipcRenderer.once('settings:get', (arg: any) => {
-    setSettings(arg);
-    setSetupPart(arg?.setupPart);
-  });
-  window.electron.ipcRenderer.sendMessage('settings:get');
+  const [swipePart, setSwipePart] = useState(0);
 
   return (
     <Router>
@@ -70,11 +68,7 @@ export default function App() {
         <Route
           path="/"
           element={
-            <Function
-              settings={settings as IStoreSettingsObject}
-              setupPart={setupPart}
-              setSetupPart={setSetupPart}
-            />
+            <Function swipePart={swipePart} setSwipePart={setSwipePart} />
           }
         />
       </Routes>

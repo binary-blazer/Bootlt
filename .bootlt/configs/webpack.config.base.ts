@@ -1,3 +1,5 @@
+/* eslint-disable import/no-relative-packages */
+
 /**
  * Base webpack config used across other specific configs
  */
