@@ -1,7 +1,7 @@
 {
   "name": "bootlt",
-  "version": "1.0.0-b.1",
-  "description": "ShadowBrowse is a web browser that is designed to be fast, secure, and private. It is built for the modern ShadowOS operating system",
+  "version": "1.0.0-a.1",
+  "description": "Flash ISO Images to SD Cards, USB Sticks and USB Drives with ease and entirely for free",
   "license": "Apache-2.0",
   "main": "./src/main/main.ts",
   "scripts": {
